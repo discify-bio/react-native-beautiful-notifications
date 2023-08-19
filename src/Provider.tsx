@@ -3,7 +3,7 @@ import { MutableRefObject, PropsWithChildren, useEffect, useRef, useState } from
 import Context from './Context'
 import { NotificationProperties, NotificationMethods } from './types'
 import { Host, Portal } from 'react-native-portalize'
-import Animated, { Easing, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated'
+import Animated, { Easing, FadeInUp, FadeOutUp, runOnJS, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
 
 interface IProps {
@@ -21,6 +21,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
 
   const [isOpen, setIsOpen] = useState(false)
   const [notificationChildren, setNotificationChildren] = useState<React.ReactNode | null>(null)
+  const [id, setId] = useState<string | null>(null)
 
   useEffect(() => {
     ref.current = {
@@ -32,9 +33,15 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
 
   const start = (properties: NotificationProperties) => {
     if (!properties.children) return
-    
+    if (properties.id) setId(properties.id)
+
     setNotificationChildren(properties.children)
     startAnimation()
+  }
+
+  const closeModal = () => {
+    setIsOpen(false)
+    setNotificationChildren(null)
   }
 
   const startAnimation = () => {
@@ -47,17 +54,11 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
       withDelay(3000, withTiming(0, {
         easing: Easing.inOut(Easing.quad),
         duration: 350
-      }, () => {
-        runOnJS(setIsOpen)(false)
+      }, (isEnded) => {
+        if (isEnded) runOnJS(closeModal)()
       }))
     )
   }
-
-  const backgroundAnimation = useAnimatedStyle(() => {
-    return {
-      opacity: value.value
-    }
-  })
   
   return (
     <Context.Provider
@@ -69,13 +70,14 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
         }}
       >
         <Portal>
-          <SafeAreaView>
+          <SafeAreaView
+            pointerEvents='none'
+          >
             {isOpen && (
               <Animated.View
-                style={[
-                  backgroundAnimation
-                ]}
-                key={String(isOpen)}
+                key={id}
+                entering={FadeInUp}
+                exiting={FadeOutUp}
               >
                 {notificationChildren}
               </Animated.View>
