@@ -1,0 +1,25 @@
+{
+  "name": "react-native-beautiful-notifications",
+  "version": "1.0.1",
+  "description": "",
+  "main": "./lib/index.js",
+  "types": "./lib/index.d.ts",
+  "private": false,
+  "scripts": {
+    "build": "rm -rf ./lib/* && tsc"
+  },
+  "keywords": [],
+  "author": "Zispidd <zispidd@gmail.com>",
+  "license": "ISC",
+  "peerDependencies": {
+    "react": "*",
+    "react-native": "*",
+    "react-native-gesture-handler": "*",
+    "react-native-portalize": "*",
+    "react-native-reanimated": "^3.0.0",
+    "react-native-safe-area-context": "*"
+  },
+  "devDependencies": {
+    "@types/react": "^18.2.14"
+  }
+}
