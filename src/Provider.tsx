@@ -3,8 +3,9 @@ import { MutableRefObject, PropsWithChildren, useEffect, useRef, useState } from
 import Context from './Context'
 import { NotificationProperties, NotificationMethods } from './types'
 import { Host, Portal } from 'react-native-portalize'
-import Animated, { Easing, FadeInUp, FadeOutUp, runOnJS, useSharedValue, withDelay, withSequence, withTiming } from 'react-native-reanimated'
+import Animated, { Easing, FadeInUp, FadeOutUp, runOnJS, useAnimatedStyle, useSharedValue, withDelay, withSequence, withSpring, withTiming } from 'react-native-reanimated'
 import { SafeAreaView } from 'react-native-safe-area-context'
+import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 
 interface IProps {
   config?: {
@@ -30,6 +31,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
   }, [])
 
   const value = useSharedValue(0)
+  const translateValue = useSharedValue(0)
 
   const start = (properties: NotificationProperties) => {
     if (!properties.children) return
@@ -40,6 +42,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
   }
 
   const closeModal = () => {
+    translateValue.value = 0
     setIsOpen(false)
     setNotificationChildren(null)
   }
@@ -59,6 +62,34 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
       }))
     )
   }
+
+  const gesture = Gesture.Pan()
+      .activeOffsetY([-10, 0])
+      .onUpdate(event => {
+        const value = event.translationY / 1.5
+        if (value > 0) return
+        translateValue.value = value
+      })
+      .onEnd(event => {
+        if (event.translationY > -10) {
+          translateValue.value = withSpring(0, {
+            stiffness: 250,
+            damping: 25
+          })
+          return
+        }
+        closeModal()
+      })
+
+  const blockStyle = useAnimatedStyle(() => {
+    return {
+      transform: [
+        {
+          translateY: translateValue.value
+        }
+      ]
+    }
+  })
   
   return (
     <Context.Provider
@@ -70,17 +101,20 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
         }}
       >
         <Portal>
-          <SafeAreaView
-            pointerEvents='none'
-          >
+          <SafeAreaView>
             {isOpen && (
-              <Animated.View
-                key={id}
-                entering={FadeInUp}
-                exiting={FadeOutUp}
+              <GestureDetector
+                gesture={gesture}
               >
-                {notificationChildren}
-              </Animated.View>
+                <Animated.View
+                  key={id}
+                  entering={FadeInUp}
+                  exiting={FadeOutUp}
+                  style={blockStyle}
+                >
+                  {notificationChildren}
+                </Animated.View>
+              </GestureDetector>
             )}
           </SafeAreaView>
         </Portal>
