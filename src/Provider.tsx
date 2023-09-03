@@ -39,6 +39,10 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
 
   const start = (properties: NotificationProperties) => {
     if (!properties.children) return
+    setTimeoutNumber(value => {
+      if (value !== null) clearTimeout(value)
+      return null
+    })
     if (properties.id) setId(properties.id)
     if (properties.onPress) setNotificationOnPress(() => properties.onPress)
 
@@ -61,6 +65,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
     setIsOpen(false)
     setNotificationChildren(null)
     translateValue.value = 0
+    setTimeoutNumber(null)
   }
 
   const startAnimation = () => {
