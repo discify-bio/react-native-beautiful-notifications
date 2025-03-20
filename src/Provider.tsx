@@ -17,7 +17,6 @@ interface IProps {
 const Provider: React.FC<PropsWithChildren<IProps>> = ({
   children,
 }) => {
-  const ref = useRef<NotificationMethods>(null) as MutableRefObject<NotificationMethods>
   const insets = useSafeAreaInsets()
 
   const [isOpen, setIsOpen] = useState(false)
@@ -126,6 +125,10 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
       ]
     }
   })
+
+  const ref = useRef<NotificationMethods>({
+    show: start
+  }) as MutableRefObject<NotificationMethods>
   
   return (
     <Context.Provider
