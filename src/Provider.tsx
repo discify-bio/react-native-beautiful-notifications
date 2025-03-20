@@ -85,16 +85,19 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
   const gesture = Gesture.Pan()
       .activeOffsetY([-10, 0])
       .onBegin(() => {
-        if (timeoutNumber !== null) clearTimeout(timeoutNumber)
+        'worklet'
+        if (timeoutNumber !== null) runOnJS(clearTimeout)(timeoutNumber)
       })
       .onUpdate(event => {
+        'worklet'
         const value = event.translationY / 1.5 > 10 ? 10 + (event.translationY / 10) : event.translationY / 1.5
         if (value > 40) return
         translateValue.value = value
       })
       .onEnd(event => {
+        'worklet'
         if (event.translationY > -10) {
-          startTimeout()
+          runOnJS(startTimeout)()
           translateValue.value = withSpring(0, {
             stiffness: 250,
             damping: 25
