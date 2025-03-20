@@ -11,11 +11,13 @@ import { TouchableOpacity } from 'react-native'
 interface IProps {
   config?: {
     activeOpacity?: number
+    duration?: number
   }
 }
 
 const Provider: React.FC<PropsWithChildren<IProps>> = ({
   children,
+  config
 }) => {
   const insets = useSafeAreaInsets()
 
@@ -79,7 +81,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
   const startTimeout = () => {
     setTimeoutNumber(setTimeout(() => {
       closeModal()
-    }, 3500))
+    }, config?.duration ?? 3500))
   }
 
   const gesture = Gesture.Pan()
@@ -104,7 +106,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
           })
           return
         }
-        closeModal()
+        runOnJS(closeModal)()
       })
 
   const blockStyle = useAnimatedStyle(() => {
@@ -148,7 +150,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
               gesture={gesture}
             >
               <TouchableOpacity
-                activeOpacity={0.7}
+                activeOpacity={config?.activeOpacity ?? 0.7}
                 onPress={onPress}
               >
                 <Animated.View
