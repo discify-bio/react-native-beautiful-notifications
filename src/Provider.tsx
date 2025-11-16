@@ -3,10 +3,11 @@ import { MutableRefObject, PropsWithChildren, useEffect, useRef, useState } from
 import Context from './Context'
 import { NotificationProperties, NotificationMethods } from './types'
 import { Host, Portal } from 'react-native-portalize'
-import Animated, { Easing, Extrapolation, interpolate, runOnJS, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated'
+import Animated, { Easing, Extrapolation, interpolate, useAnimatedStyle, useSharedValue, withSpring, withTiming } from 'react-native-reanimated'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Gesture, GestureDetector } from 'react-native-gesture-handler'
 import { TouchableOpacity } from 'react-native'
+import { scheduleOnRN } from 'react-native-worklets'
 
 interface IProps {
   config?: {
@@ -54,12 +55,16 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
   const closeModal = () => {
     value.value = withTiming(0, {
       duration: 350
-    }, () => runOnJS(clear)())
+    }, () => scheduleOnRN(clear))
   }
 
   const onPress = () => {
     closeModal()
     if (notificationOnPress) notificationOnPress()
+  }
+
+  const stopTimeout = () => {
+    if (timeoutNumber !== null) clearTimeout(timeoutNumber)
   }
 
   const clear = () => {
@@ -88,7 +93,7 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
       .activeOffsetY([-10, 0])
       .onBegin(() => {
         'worklet'
-        if (timeoutNumber !== null) runOnJS(clearTimeout)(timeoutNumber)
+        if (timeoutNumber !== null) scheduleOnRN(stopTimeout)
       })
       .onUpdate(event => {
         'worklet'
@@ -99,14 +104,14 @@ const Provider: React.FC<PropsWithChildren<IProps>> = ({
       .onEnd(event => {
         'worklet'
         if (event.translationY > -10) {
-          runOnJS(startTimeout)()
+          scheduleOnRN(startTimeout)
           translateValue.value = withSpring(0, {
             stiffness: 250,
             damping: 25
           })
           return
         }
-        runOnJS(closeModal)()
+        scheduleOnRN(closeModal)
       })
 
   const blockStyle = useAnimatedStyle(() => {
